@@ -1,59 +1,192 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🗡️ API REST - Misiones en la Tierra Media
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+API REST desarrollada con **Laravel 12** y **PostgreSQL** para gestionar héroes y misiones, con soporte para asignación de grupos, seguimiento de estado individual y timestamps de progreso.
 
-## About Laravel
+## 🚀 Características
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- ✅ CRUD completo de Héroes y Misiones
+- ✅ Asignación de héroes a misiones (many-to-many)
+- ✅ Sistema de grupos para misiones en equipo
+- ✅ Seguimiento individual de estado por héroe (assigned, in_progress, completed, failed)
+- ✅ Timestamps automáticos (started_at, completed_at, failed_at)
+- ✅ Búsqueda y filtrado con paginación (10 registros por página)
+- ✅ Validaciones en español
+- ✅ Dockerizado con Laravel Sail
+- ✅ Reglas especiales para héroes legendarios (Rediqui, Krisda, Mixart, Ernie)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📋 Requisitos
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Docker Desktop** (Windows/Mac/Linux)
+- **Git**
 
-## Learning Laravel
+## 🛠️ Instalación
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 1. Clonar el repositorio
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+git clone https://github.com/Rediqui/API-REST-Laravel---Misiones-en-la-Tierra-Media.git
+cd API-REST-Laravel---Misiones-en-la-Tierra-Media
+```
 
-## Laravel Sponsors
+### 2. Configurar el entorno
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+cp .env.example .env
+```
 
-### Premium Partners
+### 3. Instalar dependencias PHP
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+**En Windows:**
+```bash
+docker run --rm ^
+    -v "%cd%":/var/www/html ^
+    -w /var/www/html ^
+    laravelsail/php84-composer:latest ^
+    composer install --ignore-platform-reqs
+```
 
-## Contributing
+**En Linux/Mac:**
+```bash
+docker run --rm \
+    -u "$(id -u):$(id -g)" \
+    -v "$(pwd):/var/www/html" \
+    -w /var/www/html \
+    laravelsail/php84-composer:latest \
+    composer install --ignore-platform-reqs
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Iniciar contenedores Docker
 
-## Code of Conduct
+```bash
+docker compose up -d
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 5. Generar clave de aplicación y migrar base de datos
 
-## Security Vulnerabilities
+```bash
+docker compose exec laravel.test php artisan key:generate
+docker compose exec laravel.test php artisan migrate:fresh --seed
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 6. ¡Listo! 🎉
 
-## License
+Accede a la API en: **http://localhost/api/heroes**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 📚 Documentación de la API
+
+Ver archivo **[API-DOCS.md](API-DOCS.md)** para:
+- Todos los endpoints disponibles (20 rutas)
+- Ejemplos de peticiones y respuestas
+- Códigos de estado HTTP
+- Flujos completos de trabajo
+
+### Endpoints principales:
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET | `/api/heroes` | Listar héroes (paginado) |
+| POST | `/api/heroes` | Crear héroe |
+| GET | `/api/heroes/{id}/missions` | Ver misiones de un héroe |
+| POST | `/api/heroes/{id}/missions` | Asignar misiones a un héroe |
+| PUT | `/api/heroes/{heroId}/missions/{missionId}` | Actualizar estado individual |
+| GET | `/api/missions` | Listar misiones (paginado) |
+| POST | `/api/missions/{id}/heroes` | Asignar héroes a una misión |
+| GET | `/api/missions/{id}/groups/{groupName}` | Consultar estado de un grupo |
+| PUT | `/api/missions/{id}/groups/status` | Actualizar estado de todo un grupo |
+| DELETE | `/api/missions/{id}/groups/{groupName}` | Eliminar grupo de una misión |
+
+## 🐳 Comandos Docker útiles
+
+```bash
+# Ver contenedores corriendo
+docker compose ps
+
+# Ver logs en tiempo real
+docker compose logs -f laravel.test
+
+# Ejecutar comandos artisan
+docker compose exec laravel.test php artisan migrate
+docker compose exec laravel.test php artisan tinker
+
+# Detener contenedores
+docker compose down
+
+# Reiniciar todo (borra BD)
+docker compose down -v
+docker compose up -d
+docker compose exec laravel.test php artisan migrate:fresh --seed
+
+# Acceder al bash del contenedor
+docker compose exec laravel.test bash
+```
+
+## 🗄️ Acceso a la base de datos
+
+Puedes conectarte a PostgreSQL con cualquier cliente (DBeaver, pgAdmin, etc.):
+
+- **Host:** `localhost`
+- **Puerto:** `5432`
+- **Database:** `examen_api`
+- **Usuario:** `sail`
+- **Password:** `password`
+
+## 🎯 Datos de prueba
+
+El seeder crea automáticamente:
+- **7 héroes** con nombres, razas y roles variados
+- **15 misiones** con diferentes dificultades y estados
+- Incluye héroes especiales: Rediqui (indestructible), Krisda/Krisda2 (gemelos), Mixart, Ernie
+
+## 🧪 Testing
+
+```bash
+docker compose exec laravel.test php artisan test
+```
+
+## 🤝 Reglas especiales
+
+- **Rediqui**: No puede ser eliminado ni fallar misiones
+- **Krisda/Krisda2**: Al asignar/eliminar uno, se afecta al otro
+- **Mixart**: Requiere confirmación especial
+- **Ernie**: Siempre falla automáticamente
+
+## 📖 Tecnologías
+
+- **Laravel 12** (PHP 8.4)
+- **PostgreSQL 18**
+- **Docker & Laravel Sail**
+- **Composer**
+- **Git**
+
+## 📝 Estructura del proyecto
+
+```
+.
+├── app/
+│   ├── Http/Controllers/Api/
+│   │   ├── HeroController.php
+│   │   └── MissionController.php
+│   └── Models/
+│       ├── Hero.php
+│       └── Mission.php
+├── database/
+│   ├── factories/
+│   ├── migrations/
+│   │   ├── create_heroes_table.php
+│   │   ├── create_missions_table.php
+│   │   └── create_hero_mission_table.php
+│   └── seeders/
+├── routes/
+│   └── api.php
+├── compose.yaml
+├── API-DOCS.md
+└── README.md
+```
+
+## 📄 Licencia
+
+Este proyecto es de código abierto bajo la licencia MIT.
+
+---
+
+Desarrollado con ❤️ por [Rediqui](https://github.com/Rediqui)
