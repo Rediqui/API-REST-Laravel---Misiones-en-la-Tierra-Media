@@ -147,7 +147,7 @@ docker compose exec laravel.test php artisan test
 
 - **Rediqui**: No puede ser eliminado ni fallar misiones
 - **Krisda/Krisda2**: Al asignar/eliminar uno, se afecta al otro
-- **Mixart**: Requiere confirmación especial
+- **Mixart**: Mensajes Especiales ✨
 - **Ernie**: Siempre falla automáticamente
 
 ## 📖 Tecnologías
