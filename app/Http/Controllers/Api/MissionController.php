@@ -7,6 +7,7 @@ use App\Models\Mission;
 use App\Models\Hero;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class MissionController extends Controller
 {
@@ -189,6 +190,12 @@ class MissionController extends Controller
             ], 404);
         }
 
+        if (in_array($mission->status_mission, ['completed', 'failed', 'cancelled'])) {
+            return response()->json([
+                'message' => 'La mision ya fue: ' . $mission->status_mission
+            ], 403);
+        }
+
         try {
             $validated = $request->validate([
                 'heroes' => 'required|array',
@@ -202,19 +209,30 @@ class MissionController extends Controller
                 'heroes.*.hero_id.exists' => 'Uno o más héroes no existen.'
             ]);
 
-        // Preparar datos para sincronización con campos pivote
-        $syncData = [];
+            // Preparar datos para sincronización con campos pivote
+            $syncData = [];
 
-        foreach ($validated['heroes'] as $hero) {
-            $hero['hero_id'];
-            $modelhero = Hero::find($hero['hero_id']);
-            $heroname = $modelhero->name_hero;
-            if ($heroname == 'Krisda' || $heroname == 'Krisda2'){
-                $modelhero2 = Hero::where('name_hero', 'Krisda')->orWhere('name_hero', 'Krisda2');
-                $numrows = $modelhero2->count();
-                //Asignamos a los 'Krisda' heroes a la mision ya que no sabemos de quien esten hablando
-                foreach ($modelhero2->get() as $heroindb){
-                    $syncData[$heroindb['id_hero']] = [
+            foreach ($validated['heroes'] as $hero) {
+                $hero['hero_id'];
+                $modelhero = Hero::find($hero['hero_id']);
+                $heroname = $modelhero->name_hero;
+                if ($heroname == 'Krisda' || $heroname == 'Krisda2'){
+                    $modelhero2 = Hero::where('name_hero', 'Krisda')->orWhere('name_hero', 'Krisda2');
+                    $numrows = $modelhero2->count();
+                    //Asignamos a los 'Krisda' heroes a la mision ya que no sabemos de quien esten hablando
+                    foreach ($modelhero2->get() as $heroindb){
+                        $syncData[$heroindb['id_hero']] = [
+                            'status' => 'assigned',
+                            'group_name' => $hero['group_name'] ?? null,
+                            'notes' => $hero['notes'] ?? null,
+                            'started_at' => null,
+                            'completed_at' => null,
+                            'failed_at' => null
+                        ];
+                    }
+                }else{
+                    //Menos mal no es Krisda, asignamos normalmente
+                    $syncData[$hero['hero_id']] = [
                         'status' => 'assigned',
                         'group_name' => $hero['group_name'] ?? null,
                         'notes' => $hero['notes'] ?? null,
@@ -223,18 +241,7 @@ class MissionController extends Controller
                         'failed_at' => null
                     ];
                 }
-            }else{
-                //Menos mal no es Krisda, asignamos normalmente
-                $syncData[$hero['hero_id']] = [
-                    'status' => 'assigned',
-                    'group_name' => $hero['group_name'] ?? null,
-                    'notes' => $hero['notes'] ?? null,
-                    'started_at' => null,
-                    'completed_at' => null,
-                    'failed_at' => null
-                ];
             }
-        }
 
             $mission->heroes()->sync($syncData);
 
@@ -403,6 +410,56 @@ class MissionController extends Controller
                 'mission_id' => $mission->id_mission,
                 'group_name' => $groupName,
                 'heroes_removed' => $heroCount
+            ]
+        ], 200);
+    }
+
+    /**
+     * Obtener todos los grupos existentes en el sistema.
+     */
+    public function getAllGroups(): JsonResponse
+    {
+        // Obtener todos los nombres de grupo únicos de la tabla pivote
+        $groups = DB::table('hero_mission')
+            ->select('group_name')
+            ->whereNotNull('group_name')
+            ->distinct()
+            ->get()
+            ->pluck('group_name');
+
+        if ($groups->isEmpty()) {
+            return response()->json([
+                'message' => 'No se encontraron grupos en el sistema'
+            ], 404);
+        }
+
+        // Obtener información detallada de cada grupo
+        $groupDetails = [];
+        foreach ($groups as $groupName) {
+            $heroesCount = DB::table('hero_mission')
+                ->where('group_name', $groupName)
+                ->distinct('id_hero')
+                ->count('id_hero');
+
+            $missionIds = DB::table('hero_mission')
+                ->where('group_name', $groupName)
+                ->distinct()
+                ->pluck('id_mission')
+                ->toArray();
+
+            $groupDetails[] = [
+                'group_name' => $groupName,
+                'total_heroes' => $heroesCount,
+                'total_missions' => count($missionIds),
+                'mission_ids' => $missionIds
+            ];
+        }
+
+        return response()->json([
+            'message' => 'Grupos obtenidos exitosamente',
+            'data' => [
+                'total_groups' => count($groupDetails),
+                'groups' => $groupDetails
             ]
         ], 200);
     }

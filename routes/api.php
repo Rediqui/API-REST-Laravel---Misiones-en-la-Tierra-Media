@@ -12,6 +12,7 @@ Route::post('heroes/{id}/missions', [HeroController::class, 'assignMissions']);
 Route::put('heroes/{heroId}/missions/{missionId}', [HeroController::class, 'updateMissionStatus']);
 
 // Rutas para Misiones
+Route::get('missions/groups/all', [MissionController::class, 'getAllGroups']);
 Route::apiResource('missions', MissionController::class);
 Route::get('missions/search/query', [MissionController::class, 'search']);
 Route::get('missions/{id}/heroes', [MissionController::class, 'heroes']);
