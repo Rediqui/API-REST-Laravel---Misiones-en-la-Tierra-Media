@@ -63,22 +63,29 @@ class MissionController extends Controller
     //region Crear
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate(
-            [
-                'title_mission' => 'required|string|max:255',
-                'description_mission' => 'nullable|string',
-                'difficulty_mission' => 'required|in:easy,medium,hard,extreme,yes',
-                'status_mission' => 'required|in:starting,pending,in_progress,completed,cancelled,failed',
-            ],
-            $this->messages()
-        );
+        try {
+            $validated = $request->validate(
+                [
+                    'title_mission' => 'required|string|max:255',
+                    'description_mission' => 'nullable|string',
+                    'difficulty_mission' => 'required|in:easy,medium,hard,extreme,yes',
+                    'status_mission' => 'required|in:starting,pending,in_progress,completed,cancelled,failed',
+                ],
+                $this->messages()
+            );
 
-        $mission = Mission::create($validated);
+            $mission = Mission::create($validated);
 
-        return response()->json([
-            'message' => 'Misión creada exitosamente',
-            'data' => $mission
-        ], 201);
+            return response()->json([
+                'message' => 'Misión creada exitosamente',
+                'data' => $mission
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
 
@@ -97,22 +104,29 @@ class MissionController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate(
-            [
-                'title_mission' => 'sometimes|required|string|max:255',
-                'description_mission' => 'nullable|string',
-                'difficulty_mission' => 'sometimes|required|in:easy,medium,hard,extreme,yes',
-                'status_mission' => 'sometimes|required|in:starting,pending,in_progress,completed,cancelled,failed',
-            ],
-            $this->messages()
-        );
+        try {
+            $validated = $request->validate(
+                [
+                    'title_mission' => 'sometimes|required|string|max:255',
+                    'description_mission' => 'nullable|string',
+                    'difficulty_mission' => 'sometimes|required|in:easy,medium,hard,extreme,yes',
+                    'status_mission' => 'sometimes|required|in:starting,pending,in_progress,completed,cancelled,failed',
+                ],
+                $this->messages()
+            );
 
-        $mission->update($validated);
+            $mission->update($validated);
 
-        return response()->json([
-            'message' => 'Misión actualizada exitosamente',
-            'data' => $mission
-        ], 200);
+            return response()->json([
+                'message' => 'Misión actualizada exitosamente',
+                'data' => $mission
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     /**
@@ -175,17 +189,18 @@ class MissionController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'heroes' => 'required|array',
-            'heroes.*.hero_id' => 'required|exists:heroes,id_hero',
-            'heroes.*.group_name' => 'nullable|string|max:255',
-            'heroes.*.notes' => 'nullable|string'
-        ], [
-            'heroes.required' => 'Debe proporcionar al menos un héroe.',
-            'heroes.array' => 'Los héroes deben ser un array.',
-            'heroes.*.hero_id.required' => 'Cada héroe debe tener un ID.',
-            'heroes.*.hero_id.exists' => 'Uno o más héroes no existen.'
-        ]);
+        try {
+            $validated = $request->validate([
+                'heroes' => 'required|array',
+                'heroes.*.hero_id' => 'required|exists:heroes,id_hero',
+                'heroes.*.group_name' => 'nullable|string|max:255',
+                'heroes.*.notes' => 'nullable|string'
+            ], [
+                'heroes.required' => 'Debe proporcionar al menos un héroe.',
+                'heroes.array' => 'Los héroes deben ser un array.',
+                'heroes.*.hero_id.required' => 'Cada héroe debe tener un ID.',
+                'heroes.*.hero_id.exists' => 'Uno o más héroes no existen.'
+            ]);
 
         // Preparar datos para sincronización con campos pivote
         $syncData = [];
@@ -221,15 +236,21 @@ class MissionController extends Controller
             }
         }
 
-        $mission->heroes()->sync($syncData);
+            $mission->heroes()->sync($syncData);
 
-        return response()->json([
-            'message' => 'Héroes asignados exitosamente a la misión',
-            'data' => [
-                'mission' => $mission,
-                'heroes' => $mission->heroes
-            ]
-        ], 200);
+            return response()->json([
+                'message' => 'Héroes asignados exitosamente a la misión',
+                'data' => [
+                    'mission' => $mission,
+                    'heroes' => $mission->heroes
+                ]
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     /**
@@ -280,15 +301,16 @@ class MissionController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'group_name' => 'required|string|max:255',
-            'status' => 'required|in:assigned,in_progress,completed,failed',
-            'notes' => 'nullable|string'
-        ], [
-            'group_name.required' => 'El nombre del grupo es obligatorio.',
-            'status.required' => 'El estado es obligatorio.',
-            'status.in' => 'El estado debe ser: assigned, in_progress, completed o failed.'
-        ]);
+        try {
+            $validated = $request->validate([
+                'group_name' => 'required|string|max:255',
+                'status' => 'required|in:assigned,in_progress,completed,failed',
+                'notes' => 'nullable|string'
+            ], [
+                'group_name.required' => 'El nombre del grupo es obligatorio.',
+                'status.required' => 'El estado es obligatorio.',
+                'status.in' => 'El estado debe ser: assigned, in_progress, completed o failed.'
+            ]);
 
         // Obtener todos los héroes del grupo en esta misión
         $heroesInGroup = $mission->heroes()
@@ -328,15 +350,21 @@ class MissionController extends Controller
             ->wherePivot('group_name', $validated['group_name'])
             ->get();
 
-        return response()->json([
-            'message' => 'Estado del grupo actualizado exitosamente',
-            'data' => [
-                'mission' => $mission,
-                'group_name' => $validated['group_name'],
-                'heroes_updated' => $updatedHeroes->count(),
-                'heroes' => $updatedHeroes
-            ]
-        ], 200);
+            return response()->json([
+                'message' => 'Estado del grupo actualizado exitosamente',
+                'data' => [
+                    'mission' => $mission,
+                    'group_name' => $validated['group_name'],
+                    'heroes_updated' => $updatedHeroes->count(),
+                    'heroes' => $updatedHeroes
+                ]
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     /**

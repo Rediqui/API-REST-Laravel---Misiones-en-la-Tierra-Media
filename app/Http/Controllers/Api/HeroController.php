@@ -73,21 +73,28 @@ class HeroController extends Controller
     //region Crear
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate(
-            [
-                'name_hero' => 'required|string|max:255',
-                'race_hero' => 'required|string|max:255',
-                'role_hero' => 'required|string|max:255',
-            ],
-            $this->messages()
-        );
+        try {
+            $validated = $request->validate(
+                [
+                    'name_hero' => 'required|string|max:255',
+                    'race_hero' => 'required|string|max:255',
+                    'role_hero' => 'required|string|max:255',
+                ],
+                $this->messages()
+            );
 
-        $hero = Hero::create($validated);
+            $hero = Hero::create($validated);
 
-        return response()->json([
-            'message' => 'Héroe creado exitosamente',
-            'data' => $hero
-        ], 201);
+            return response()->json([
+                'message' => 'Héroe creado exitosamente',
+                'data' => $hero
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     /**
@@ -104,21 +111,28 @@ class HeroController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate(
-            [
-                'name_hero' => 'sometimes|required|string|max:255',
-                'race_hero' => 'sometimes|required|string|max:255',
-                'role_hero' => 'sometimes|required|string|max:255',
-            ],
-            $this->messages()
-        );
+        try {
+            $validated = $request->validate(
+                [
+                    'name_hero' => 'sometimes|required|string|max:255',
+                    'race_hero' => 'sometimes|required|string|max:255',
+                    'role_hero' => 'sometimes|required|string|max:255',
+                ],
+                $this->messages()
+            );
 
-        $hero->update($validated);
+            $hero->update($validated);
 
-        return response()->json([
-            'message' => 'Héroe actualizado exitosamente',
-            'data' => $hero
-        ], 200);
+            return response()->json([
+                'message' => 'Héroe actualizado exitosamente',
+                'data' => $hero
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     /**
@@ -210,17 +224,18 @@ class HeroController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'missions' => 'required|array',
-            'missions.*.mission_id' => 'required|exists:missions,id_mission',
-            'missions.*.group_name' => 'nullable|string|max:255',
-            'missions.*.notes' => 'nullable|string'
-        ], [
-            'missions.required' => 'Debe proporcionar al menos una misión.',
-            'missions.array' => 'Las misiones deben ser un array.',
-            'missions.*.mission_id.required' => 'Cada misión debe tener un ID.',
-            'missions.*.mission_id.exists' => 'Una o más misiones no existen.'
-        ]);
+        try {
+            $validated = $request->validate([
+                'missions' => 'required|array',
+                'missions.*.mission_id' => 'required|exists:missions,id_mission',
+                'missions.*.group_name' => 'nullable|string|max:255',
+                'missions.*.notes' => 'nullable|string'
+            ], [
+                'missions.required' => 'Debe proporcionar al menos una misión.',
+                'missions.array' => 'Las misiones deben ser un array.',
+                'missions.*.mission_id.required' => 'Cada misión debe tener un ID.',
+                'missions.*.mission_id.exists' => 'Una o más misiones no existen.'
+            ]);
 
         // Preparar datos para sincronización con campos pivote
         $syncData = [];
@@ -235,15 +250,21 @@ class HeroController extends Controller
             ];
         }
 
-        $hero->missions()->sync($syncData);
+            $hero->missions()->sync($syncData);
 
-        return response()->json([
-            'message' => 'Misiones asignadas exitosamente al héroe',
-            'data' => [
-                'hero' => $hero,
-                'missions' => $hero->missions
-            ]
-        ], 200);
+            return response()->json([
+                'message' => 'Misiones asignadas exitosamente al héroe',
+                'data' => [
+                    'hero' => $hero,
+                    'missions' => $hero->missions
+                ]
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     /**
@@ -260,13 +281,14 @@ class HeroController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
-            'status' => 'required|in:assigned,in_progress,completed,failed',
-            'notes' => 'nullable|string'
-        ], [
-            'status.required' => 'El estado es obligatorio.',
-            'status.in' => 'El estado debe ser: assigned, in_progress, completed o failed.'
-        ]);
+        try {
+            $validated = $request->validate([
+                'status' => 'required|in:assigned,in_progress,completed,failed',
+                'notes' => 'nullable|string'
+            ], [
+                'status.required' => 'El estado es obligatorio.',
+                'status.in' => 'El estado debe ser: assigned, in_progress, completed o failed.'
+            ]);
 
         // Verificar que la misión esté asignada al héroe
         if (!$hero->missions()->where('id_mission', $missionId)->exists()) {
@@ -313,14 +335,20 @@ class HeroController extends Controller
         // Obtener la misión actualizada con datos del pivote
         $mission = $hero->missions()->where('id_mission', $missionId)->first();
 
-        return response()->json([
-            'message' => 'Estado de la misión actualizado exitosamente',
-            'data' => [
-                'hero' => $hero,
-                'mission' => $mission,
-                'pivot' => $mission->pivot
-            ]
-        ], 200);
+            return response()->json([
+                'message' => 'Estado de la misión actualizado exitosamente',
+                'data' => [
+                    'hero' => $hero,
+                    'mission' => $mission,
+                    'pivot' => $mission->pivot
+                ]
+            ], 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
     }
 
     /**
