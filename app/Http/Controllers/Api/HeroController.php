@@ -143,42 +143,47 @@ class HeroController extends Controller
     {
         $hero = Hero::find($id);
 
-        $heromodel = new Hero();
-
-
         if (!$hero) {
             return response()->json([
                 'message' => 'Héroe no encontrado'
             ], 404);
         }
 
-        $hero = $heromodel->find($id);
-        $heroname = $hero['name_hero'];
+        $heroname = $hero->name_hero;
 
         if ($heroname == 'Rediqui'){
             return response()->json([
-                'message' => 'No se puede a un heroe tan legendario'
+                'message' => 'No se puede eliminar a un heroe tan legendario'
             ], 403);
-        }else if ($heroname == 'Krisda' || $heroname == 'Krisda2' || $heroname == 'Pollo' || $heroname == 'Pollo2'){
+        }
+        
+        if ($heroname == 'Krisda' || $heroname == 'Krisda2' || $heroname == 'Pollo' || $heroname == 'Pollo2'){
+            Hero::where('name_hero', 'Krisda')
+                ->orWhere('name_hero', 'Krisda2')
+                ->orWhere('name_hero', 'Pollo')
+                ->orWhere('name_hero', 'Pollo2')
+                ->delete();
+            
             return response()->json([
                 'message' => 'No se sabe a quien se debe eliminar... Eliminando a ambos heroes es la mejor opcion'
-            ], 403);
-
-            $heromodel->where('name_hero', 'Krisda')->orWhere('name_hero', 'Krisda2')->delete();
-        }else if ($heroname == 'Mixart'){
+            ], 200);
+        }
+        
+        if ($heroname == 'Mixart'){
+            $hero->delete();
             return response()->json([
                 'message' => 'Igual ni ocupamos un frontend'
-            ], 403);
-            $hero->delete();
-        }else if ($heroname == 'Ernie'){
+            ], 200);
+        }
+        
+        if ($heroname == 'Ernie'){
+            Hero::where('name_hero', 'Ernie')->delete();
             return response()->json([
                 'message' => 'Mejor eliminemos a todos los Ernies'
-            ], 403);
-            $heromodel->where('name_hero', 'Ernie')->delete();
-        }else{
-            $hero->delete();
-
+            ], 200);
         }
+        
+        $hero->delete();
 
         return response()->json([
             'message' => 'Héroe eliminado exitosamente'
@@ -304,19 +309,14 @@ class HeroController extends Controller
             $updateData['notes'] = $validated['notes'];
         }
 
-        $modelhero = new Hero();
-        $modelhero = $modelhero->find($heroId);
-        $namehero = $modelhero['name_hero'];
+        $namehero = $hero->name_hero;
 
+        // Validaciones especiales por héroe
         if ($namehero == 'Rediqui' && $validated['status'] == 'failed'){
-            return response()->json([
-                'message' => 'Rediqui nunca falla sus misiones'
-            ], 403);
             $updateData['status'] = 'completed';
-        }else if ($namehero == 'Ernie'){
-            return response()->json([
-                'message' => 'Mision fallida'
-            ], 403);
+        }
+        
+        if ($namehero == 'Ernie'){
             $updateData['status'] = 'failed';
         }
 
