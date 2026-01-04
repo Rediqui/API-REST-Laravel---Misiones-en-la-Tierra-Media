@@ -31,10 +31,29 @@ return Application::configure(basePath: dirname(__DIR__))
                         'error' => $e->getMessage(),
                         'sql' => $e->getSql() ?? null,
                     ] : null;
+                } elseif ($e instanceof \PDOException) {
+                    $statusCode = 503;
+                    $message = 'Error de conexión a la base de datos';
+                    $errors = config('app.debug') ? [
+                        'error' => $e->getMessage(),
+                        'code' => $e->getCode(),
+                    ] : null;
                 } elseif ($e instanceof \Illuminate\Validation\ValidationException) {
                     $statusCode = 422;
                     $message = 'Error de validación';
                     $errors = $e->errors();
+                } elseif ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                    $statusCode = 401;
+                    $message = 'No autenticado';
+                } elseif ($e instanceof \Illuminate\Auth\Access\AuthorizationException) {
+                    $statusCode = 403;
+                    $message = 'No autorizado';
+                } elseif ($e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+                    $statusCode = 404;
+                    $message = 'Recurso no encontrado';
+                } elseif ($e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException) {
+                    $statusCode = 429;
+                    $message = 'Demasiadas solicitudes. Por favor, intente más tarde.';
                 } elseif ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) {
                     $statusCode = 404;
                     $message = 'Recurso no encontrado';
