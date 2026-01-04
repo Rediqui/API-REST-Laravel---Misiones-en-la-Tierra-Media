@@ -27,7 +27,7 @@ Cuando hay problemas de conexión con la base de datos (QueryException o PDOExce
 **Nota:** Los detalles del error (`errors`) solo se muestran cuando `APP_DEBUG=true` en el archivo `.env`.
 
 #### 2. Errores de Validación (422)
-Ya manejados por los controladores, ahora también capturados globalmente:
+Ya manejados por los controladores, ahora también capturados globalmente. Los mensajes de validación están en español y son amigables para el usuario:
 
 ```json
 {
@@ -40,6 +40,8 @@ Ya manejados por los controladores, ahora también capturados globalmente:
   }
 }
 ```
+
+**Nota:** Los errores de validación siempre se muestran completos, ya que son mensajes diseñados para ser vistos por el usuario y ayudarle a corregir su entrada. No contienen información sensible del sistema.
 
 #### 3. No Autenticado (401)
 
